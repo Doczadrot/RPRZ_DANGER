@@ -445,13 +445,29 @@ def root():
 
 
 def is_working_hours() -> bool:
-    """Бот теперь работает круглосуточно - всегда возвращает True."""
-    return True
+    """Проверяет рабочее время: 7:00-19:00 МСК"""
+    # МСК = UTC+3
+    moscow_offset = timedelta(hours=3)
+    moscow_tz = timezone(moscow_offset)
+    moscow_time = datetime.now(moscow_tz)
+    current_hour = moscow_time.hour
+
+    # Рабочие часы: 7:00-19:00
+    return 7 <= current_hour < 19
 
 
 def check_and_shutdown_if_needed():
-    """Бот работает круглосуточно - функция больше ничего не делает."""
-    pass
+    """Проверяет время и останавливает бот если нерабочее время"""
+    if not is_working_hours():
+        moscow_offset = timedelta(hours=3)
+        moscow_tz = timezone(moscow_offset)
+        moscow_time = datetime.now(moscow_tz)
+        logger.warning(
+            f"⏰ Нерабочее время! Текущее время МСК: {moscow_time.strftime('%H:%M')}. "
+            f"Бот останавливается для экономии ресурсов."
+        )
+        logger.info("🕐 Рабочие часы бота: 7:00-19:00 МСК")
+        sys.exit(0)
 
 
 def mask_sensitive_data(text: str) -> str:
