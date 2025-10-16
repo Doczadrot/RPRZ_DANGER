@@ -731,7 +731,6 @@ def show_specific_shelter(chat_id: int, shelter_name: str):
         # Создаем кнопки с действиями для убежища
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("📋 Показать список убежищ"))
-        markup.add(types.KeyboardButton("🗺️ Показать на карте"))
         markup.add(types.KeyboardButton("⬅️ Назад"))
 
         bot.send_message(chat_id, shelter_text, reply_markup=markup)
@@ -1316,9 +1315,6 @@ def handle_text(message):
         elif text == "🏭 Убежище № 10 (РПРЗ, 12 пролет)":
             logger.info(f"🏭 {username} ({chat_id}) выбрал убежище № 10")
             show_specific_shelter(chat_id, text)
-        elif text == "🗺️ Показать на карте":
-            logger.info(f"🗺️ {username} ({chat_id}) запросил карту")
-            show_shelter_map(chat_id)
         else:
             bot.send_message(
                 chat_id,
