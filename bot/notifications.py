@@ -3,10 +3,7 @@
 """
 import logging
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 import resend
 
@@ -178,7 +175,7 @@ def _format_incident_html(
 ) -> str:
     """Форматирует HTML для письма об инциденте"""
     from datetime import datetime
-    
+
     html_content = f"""
     <html>
     <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
@@ -186,28 +183,48 @@ def _format_incident_html(
             <h2 style="color: #d32f2f; margin-top: 0;">🚨 НОВЫЙ ИНЦИДЕНТ</h2>
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>👤 Пользователь:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;">{incident_data.get('username', 'Неизвестно')} (ID: {incident_data.get('user_id', 'Неизвестно')})</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        <strong>👤 Пользователь:</strong>
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        {incident_data.get('username', 'Неизвестно')} (ID: {incident_data.get('user_id', 'Неизвестно')})
+                    </td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>📝 Описание:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;">{incident_data.get('description', 'Не указано')}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        <strong>📝 Описание:</strong>
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        {incident_data.get('description', 'Не указано')}
+                    </td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>📍 Место:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;">{incident_data.get('location_text', 'Не указано')}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        <strong>📍 Место:</strong>
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        {incident_data.get('location_text') or 'Не указано'}
+                    </td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>🕐 Время:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #eee;">{datetime.now().strftime('%d.%m.%Y %H:%M:%S')} МСК</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        <strong>🕐 Время:</strong>
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        {datetime.now().strftime('%d.%m.%Y %H:%M:%S')} МСК
+                    </td>
                 </tr>
             </table>
     """
 
     if media_files:
+        media_count = len(media_files)
         html_content += f"""
-            <div style="margin-top: 20px; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
-                <h3 style="margin-top: 0; color: #1976d2;">📎 Прикрепленные файлы ({len(media_files)}):</h3>
+            <div style="margin-top: 20px; padding: 15px; background-color: #e3f2fd;
+                        border-left: 4px solid #2196f3; border-radius: 4px;">
+                <h3 style="margin-top: 0; color: #1976d2;">
+                    📎 Прикрепленные файлы ({media_count}):
+                </h3>
                 <ul style="list-style: none; padding: 0;">
         """
         for idx, media in enumerate(media_files, 1):
@@ -223,7 +240,12 @@ def _format_incident_html(
             else:
                 icon, type_name = "📎", "Файл"
 
-            html_content += f'<li style="padding: 5px 0;">{icon} <strong>{type_name} {idx}:</strong> <code>{filename}</code></li>'
+            file_line = (
+                f'<li style="padding: 5px 0;">{icon} '
+                f"<strong>{type_name} {idx}:</strong> "
+                f"<code>{filename}</code></li>"
+            )
+            html_content += file_line
 
         html_content += """
                 </ul>
@@ -234,8 +256,12 @@ def _format_incident_html(
         """
 
     html_content += """
-            <div style="margin-top: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 4px; font-size: 0.85em; color: #666;">
-                <p style="margin: 0;">Это автоматическое уведомление от RPRZ Бота.</p>
+            <div style="margin-top: 20px; padding: 10px;
+                        background-color: #f5f5f5; border-radius: 4px;
+                        font-size: 0.85em; color: #666;">
+                <p style="margin: 0;">
+                    Это автоматическое уведомление от RPRZ Бота.
+                </p>
             </div>
         </div>
     </body>
@@ -340,7 +366,7 @@ def format_incident_message(incident_data: Dict[str, Any]) -> str:
     """Форматирует сообщение об инциденте для Telegram"""
     from datetime import datetime
 
-    message = f"🚨 <b>Новый инцидент в RPRZ боте</b>\n\n"
+    message = "🚨 <b>Новый инцидент в RPRZ боте</b>\n\n"
     message += f"📋 <b>Тип:</b> {incident_data.get('type', 'Сообщение об опасности')}\n"
     message += f"👤 <b>Пользователь:</b> {incident_data.get('username', 'Неизвестно')}\n"
     message += f"🆔 <b>ID:</b> {incident_data.get('user_id', 'Неизвестно')}\n"
@@ -351,10 +377,12 @@ def format_incident_message(incident_data: Dict[str, Any]) -> str:
         lat = incident_data["location"].get("latitude", "")
         lon = incident_data["location"].get("longitude", "")
         message += f"📍 <b>Координаты:</b> {lat}, {lon}\n"
-    elif incident_data.get("location_text"):
+    elif (
+        incident_data.get("location_text") and incident_data["location_text"] != "None"
+    ):
         message += f"📍 <b>Место:</b> {incident_data['location_text']}\n"
     else:
-        message += f"📍 <b>Место:</b> Не указано\n"
+        message += "📍 <b>Место:</b> Не указано\n"
 
     message += f"📷 <b>Медиафайлов:</b> {incident_data.get('media_count', 0)}\n"
 
@@ -368,7 +396,7 @@ def format_incident_email(incident_data: Dict[str, Any]) -> str:
     """Форматирует текст письма об инциденте"""
     from datetime import datetime
 
-    body = f"Новый инцидент в RPRZ боте\n\n"
+    body = "Новый инцидент в RPRZ боте\n\n"
     body += f"Тип: {incident_data.get('type', 'Сообщение об опасности')}\n"
     body += f"Пользователь: {incident_data.get('username', 'Неизвестно')}\n"
     body += f"ID: {incident_data.get('user_id', 'Неизвестно')}\n"
@@ -379,16 +407,18 @@ def format_incident_email(incident_data: Dict[str, Any]) -> str:
         lat = incident_data["location"].get("latitude", "")
         lon = incident_data["location"].get("longitude", "")
         body += f"Координаты: {lat}, {lon}\n"
-    elif incident_data.get("location_text"):
+    elif (
+        incident_data.get("location_text") and incident_data["location_text"] != "None"
+    ):
         body += f"Место: {incident_data['location_text']}\n"
     else:
-        body += f"Место: Не указано\n"
+        body += "Место: Не указано\n"
 
     body += f"Медиафайлов: {incident_data.get('media_count', 0)}\n"
 
     if incident_data.get("severity"):
         body += f"Критичность: {incident_data['severity']}\n"
 
-    body += f"\n\nЭто автоматическое уведомление от RPRZ бота."
+    body += "\n\nЭто автоматическое уведомление от RPRZ бота."
 
     return body

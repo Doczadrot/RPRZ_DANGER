@@ -1345,6 +1345,10 @@ def handle_text(message):
         if text == "🚌 Расписание автобусов":
             logger.info(f"🚌 {username} ({chat_id}) запросил расписание автобусов")
             show_bus_schedule(chat_id)
+        # Обработка кнопки "Ключевые контакты"
+        elif text == "📞 Ключевые контакты":
+            logger.info(f"📞 {username} ({chat_id}) запросил ключевые контакты")
+            show_key_contacts(chat_id)
         else:
             result = handle_rprz_assistant_text(message, placeholders)
             if isinstance(result, tuple):
@@ -1359,12 +1363,14 @@ def handle_text(message):
                     # Создаем клавиатуру с кнопками для rprz_assistant
                     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
                     markup.add(types.KeyboardButton("🚌 Расписание автобусов"))
+                    markup.add(types.KeyboardButton("📞 Ключевые контакты"))
                     markup.add(types.KeyboardButton("⬅️ Назад"))
                     bot.send_message(chat_id, response, reply_markup=markup)
             else:
                 # Создаем клавиатуру с кнопками для rprz_assistant
                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
                 markup.add(types.KeyboardButton("🚌 Расписание автобусов"))
+                markup.add(types.KeyboardButton("📞 Ключевые контакты"))
                 markup.add(types.KeyboardButton("⬅️ Назад"))
                 bot.send_message(chat_id, result, reply_markup=markup)
 
@@ -1516,6 +1522,7 @@ def show_bus_schedule(chat_id: int):
         # Создаем клавиатуру с кнопками
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("🚌 Расписание автобусов"))
+        markup.add(types.KeyboardButton("📞 Ключевые контакты"))
         markup.add(types.KeyboardButton("⬅️ Назад"))
 
         bot.send_message(chat_id, info_text, reply_markup=markup)
@@ -1524,6 +1531,72 @@ def show_bus_schedule(chat_id: int):
     except Exception as e:
         logger.error(f"❌ Ошибка показа расписания автобусов: {e}")
         bot.send_message(chat_id, "❌ Произошла ошибка при загрузке расписания")
+
+
+def show_key_contacts(chat_id: int):
+    """Показывает ключевые контакты РПРЗ"""
+    if not BOT_TOKEN or not bot:
+        logger.warning("BOT_TOKEN не настроен, функция show_key_contacts недоступна")
+        return
+
+    try:
+        # Получаем ключевые контакты из placeholders
+        key_contacts = placeholders.get("key_contacts", {})
+
+        if not key_contacts:
+            bot.send_message(chat_id, "❌ Ключевые контакты временно недоступны.")
+            return
+
+        # Формируем сообщение с контактами
+        contacts_text = "📞 Ключевые контакты РПРЗ\n\n"
+        contacts_text += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+        # Травмпункт
+        if "trauma_center" in key_contacts:
+            contacts_text += f"🏥 {key_contacts['trauma_center']['name']}\n"
+            contacts_text += f"📞 {key_contacts['trauma_center']['phone']}\n\n"
+
+        # Пожарная часть
+        if "fire_department" in key_contacts:
+            contacts_text += f"🚒 {key_contacts['fire_department']['name']}\n"
+            contacts_text += f"📞 {key_contacts['fire_department']['phone']}\n\n"
+
+        # Пост охраны
+        if "security_post" in key_contacts:
+            contacts_text += f"🛡️ {key_contacts['security_post']['name']}\n"
+            contacts_text += f"📞 {key_contacts['security_post']['phone']}\n\n"
+
+        # Профсоюзный комитет
+        if "union" in key_contacts:
+            contacts_text += f"👥 {key_contacts['union']['name']}\n"
+            contacts_text += f"📞 {key_contacts['union']['phone']}\n\n"
+
+        # Отдел развития и оценки персонала
+        if "hr_development" in key_contacts:
+            contacts_text += f"📋 {key_contacts['hr_development']['name']}\n"
+            contacts_text += f"📞 {key_contacts['hr_development']['phone']}\n\n"
+
+        # Служба поддержки пользователей
+        if "user_support" in key_contacts:
+            contacts_text += f"💻 {key_contacts['user_support']['name']}\n"
+            contacts_text += f"📞 {key_contacts['user_support']['phone']}\n\n"
+
+        contacts_text += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        contacts_text += "💡 Для внутренних звонков используйте короткие номера"
+
+        # Создаем клавиатуру с кнопками
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton("🚌 Расписание автобусов"))
+        markup.add(types.KeyboardButton("📞 Ключевые контакты"))
+        markup.add(types.KeyboardButton("⬅️ Назад"))
+
+        bot.send_message(chat_id, contacts_text, reply_markup=markup)
+        log_activity(chat_id, "user", "key_contacts_viewed")
+        logger.info(f"✅ Ключевые контакты отправлены пользователю {chat_id}")
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка показа ключевых контактов: {e}")
+        bot.send_message(chat_id, "❌ Произошла ошибка при загрузке контактов")
 
 
 def start_rprz_assistant(message):
@@ -1560,6 +1633,7 @@ def start_rprz_assistant(message):
     # Создаем клавиатуру с кнопками
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("🚌 Расписание автобусов"))
+    markup.add(types.KeyboardButton("📞 Ключевые контакты"))
     markup.add(types.KeyboardButton("⬅️ Назад"))
 
     bot.send_message(chat_id, welcome_text, reply_markup=markup)
