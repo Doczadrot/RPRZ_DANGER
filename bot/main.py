@@ -1606,17 +1606,9 @@ def show_key_contacts(chat_id: int):
 
         contacts_text += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         contacts_text += "📱 Для звонка с мобильного телефона:\n\n"
-        contacts_text += "1️⃣ Позвоните: +7 (863) 300-02-28\n"
-        contacts_text += "2️⃣ В тональном режиме наберите внутренний номер\n\n"
-        contacts_text += "💡 Нажмите кнопку ниже для быстрого вызова главного номера"
-
-        # Создаем inline кнопку только для главного номера
-        inline_markup = types.InlineKeyboardMarkup()
-        inline_markup.add(
-            types.InlineKeyboardButton(
-                "📞 Позвонить: +7 (863) 300-02-28", url="tel:+78633000228"
-            )
-        )
+        contacts_text += "📞 Позвоните: +7 (863) 300-02-28\n"
+        contacts_text += "Затем в тональном режиме наберите внутренний номер\n\n"
+        contacts_text += "💡 Скопируйте номер выше для быстрого вызова"
 
         # Создаем клавиатуру с кнопками навигации
         keyboard_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -1624,8 +1616,7 @@ def show_key_contacts(chat_id: int):
         keyboard_markup.add(types.KeyboardButton("📞 Ключевые контакты"))
         keyboard_markup.add(types.KeyboardButton("⬅️ Назад"))
 
-        bot.send_message(chat_id, contacts_text, reply_markup=inline_markup)
-        bot.send_message(chat_id, "Вернуться в меню:", reply_markup=keyboard_markup)
+        bot.send_message(chat_id, contacts_text, reply_markup=keyboard_markup)
 
         log_activity(chat_id, "user", "key_contacts_viewed")
         logger.info(f"✅ Ключевые контакты отправлены пользователю {chat_id}")

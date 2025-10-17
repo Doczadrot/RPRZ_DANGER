@@ -785,34 +785,38 @@ class TestKeyContactsFeature(unittest.TestCase):
             # Проверяем формат номера (должен быть XX-XX)
             self.assertRegex(contact_data["phone"], r"\d{2}-\d{2}")
 
-    def test_key_contacts_phone_url_format(self):
-        """Тест что URL для звонка имеет правильный формат (без добавочных)"""
-        # Этот тест проверяет главную исправленную ошибку:
-        # Telegram не поддерживает tel: URL с запятой и добавочными номерами
-        correct_url = "tel:+78633000228"
+    def test_no_tel_links_in_inline_buttons(self):
+        """Тест что мы НЕ используем tel: ссылки в inline кнопках"""
+        # КРИТИЧЕСКИ ВАЖНО: Telegram API вообще НЕ ПОДДЕРЖИВАЕТ tel: ссылки
+        # в InlineKeyboardButton, даже простые типа tel:+78633000228
+        # Это вызывает ошибку: "Wrong port number specified in the URL"
 
-        # URL НЕ должен содержать запятую и добавочный номер
-        self.assertNotIn(",", correct_url)
+        # Читаем код функции show_key_contacts
+        import inspect
 
-        # URL должен быть простым телефонным номером
-        self.assertTrue(correct_url.startswith("tel:+7"))
+        import bot.main
 
-        # Проверяем что некорректные URL отличаются от правильного
-        invalid_urls = {
-            "tel:+78633000228,3194": ",",  # С запятой (вызывает ошибку в Telegram)
-            "tel:+78633000228;3194": ";",  # С точкой с запятой
-            "tel:+78633000228#3194": "#",  # С решеткой
-        }
+        source = inspect.getsource(bot.main.show_key_contacts)
 
-        for invalid_url, separator in invalid_urls.items():
-            # Эти URL вызовут ошибку "Wrong port number" в Telegram API
-            self.assertIn(
-                separator,
-                invalid_url,
-                f"Invalid URL should contain separator {separator}",
+        # Проверяем что в коде НЕТ tel: ссылок в inline кнопках
+        # Если есть, это критическая ошибка
+        self.assertNotIn(
+            'url="tel:',
+            source,
+            "КРИТИЧЕСКАЯ ОШИБКА: tel: ссылки не поддерживаются в Telegram inline кнопках!",
+        )
+        self.assertNotIn(
+            "url='tel:",
+            source,
+            "КРИТИЧЕСКАЯ ОШИБКА: tel: ссылки не поддерживаются в Telegram inline кнопках!",
+        )
+
+        # Проверяем что нет использования InlineKeyboardButton с tel:
+        if "InlineKeyboardButton" in source and "tel:" in source:
+            self.fail(
+                "ОШИБКА: Обнаружено использование tel: рядом с InlineKeyboardButton. "
+                "Telegram не поддерживает tel: протокол в inline кнопках!"
             )
-            # Проверяем что правильный URL НЕ содержит этих символов
-            self.assertNotIn(separator, correct_url)
 
 
 if __name__ == "__main__":
