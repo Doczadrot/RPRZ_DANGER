@@ -133,6 +133,14 @@ def get_back_keyboard():
     return markup
 
 
+def get_danger_keyboard():
+    """Возвращает клавиатуру для раздела 'Сообщить об опасности'"""
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("📞 Ключевые контакты"))
+    markup.add(types.KeyboardButton("⬅️ Назад"))
+    return markup
+
+
 def get_main_menu_keyboard():
     """Возвращает главное меню с 4 кнопками (каждая на отдельной строке)"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -227,14 +235,14 @@ def handle_danger_report_text(message, user_data, placeholders):
             user_data["step"] = "location_text"
             return "danger_report", {
                 "text": "📍 Укажите местоположение инцидента текстом (максимум 200 символов):",
-                "reply_markup": get_back_keyboard(),
+                "reply_markup": get_danger_keyboard(),
             }
         elif text == "⬅️ Назад":
             # Возвращаемся к описанию
             user_data["step"] = "description"
             return "danger_report", {
                 "text": "❗ Сообщите об опасности\n\n📝 Опишите что произошло (максимум 500 символов):",
-                "reply_markup": get_back_keyboard(),
+                "reply_markup": get_danger_keyboard(),
             }
         else:
             # Проверяем, что это не кнопка из медиа-меню
@@ -336,7 +344,7 @@ def handle_danger_report_text(message, user_data, placeholders):
             user_data["step"] = "description"
             return "danger_report", {
                 "text": "❗ Сообщите об опасности\n\n📝 Опишите что произошло (максимум 500 символов):",
-                "reply_markup": get_back_keyboard(),
+                "reply_markup": get_danger_keyboard(),
             }
         elif text == "❌ Отменить":
             user_data.clear()

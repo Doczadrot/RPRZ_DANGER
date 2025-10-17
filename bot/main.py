@@ -28,6 +28,7 @@ try:
     from bot.handlers import (
         finish_danger_report,
         get_back_keyboard,
+        get_danger_keyboard,
         get_main_menu_keyboard,
         get_media_keyboard,
         handle_danger_report_location,
@@ -42,6 +43,7 @@ except ImportError:
     from handlers import (
         finish_danger_report,
         get_back_keyboard,
+        get_danger_keyboard,
         get_main_menu_keyboard,
         get_media_keyboard,
         handle_danger_report_location,
@@ -1259,6 +1261,15 @@ def handle_text(message):
     # Обработка состояний
     elif user_states.get(chat_id) == "danger_report":
         logger.info(f"🚨 {username} ({chat_id}) в процессе сообщения об опасности")
+
+        # Обработка кнопки "Ключевые контакты"
+        if text == "📞 Ключевые контакты":
+            logger.info(
+                f"📞 {username} ({chat_id}) запросил ключевые контакты из danger_report"
+            )
+            show_key_contacts(chat_id)
+            return
+
         logger.bind(user_id=user_id).debug(
             f"Обработка состояния 'danger_report' для пользователя {username}"
         )
@@ -1444,7 +1455,7 @@ def start_danger_report(message):
         "Введите текст с описанием места. Пример: – ЦГТ-025, 4-й участок.\n"
         "Прикрепите, пожалуйста, фото или видео. Ваше фото облегчит или ускорит решение вопроса.\n\n"
         "📝 Опишите что произошло (максимум 500 символов):",
-        reply_markup=get_back_keyboard(),
+        reply_markup=get_danger_keyboard(),
     )
 
 
