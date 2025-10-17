@@ -1562,20 +1562,12 @@ def show_key_contacts(chat_id: int):
         contacts_text = "📞 Ключевые контакты РПРЗ\n\n"
         contacts_text += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
-        # Создаем inline клавиатуру с кнопками для звонков
-        inline_markup = types.InlineKeyboardMarkup()
-
         # Травмпункт
         if "trauma_center" in key_contacts:
             name = key_contacts["trauma_center"]["name"]
             phone = key_contacts["trauma_center"]["phone"]
             contacts_text += f"🏥 {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    f"📞 {name}", url=f"tel:+78633000228,{phone.replace('-', '')}"
-                )
-            )
 
         # Пожарная часть
         if "fire_department" in key_contacts:
@@ -1583,11 +1575,6 @@ def show_key_contacts(chat_id: int):
             phone = key_contacts["fire_department"]["phone"]
             contacts_text += f"🚒 {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    f"🚒 {name}", url=f"tel:+78633000228,{phone.replace('-', '')}"
-                )
-            )
 
         # Пост охраны
         if "security_post" in key_contacts:
@@ -1595,11 +1582,6 @@ def show_key_contacts(chat_id: int):
             phone = key_contacts["security_post"]["phone"]
             contacts_text += f"🛡️ {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    f"🛡️ {name}", url=f"tel:+78633000228,{phone.replace('-', '')}"
-                )
-            )
 
         # Профсоюзный комитет
         if "union" in key_contacts:
@@ -1607,11 +1589,6 @@ def show_key_contacts(chat_id: int):
             phone = key_contacts["union"]["phone"]
             contacts_text += f"👥 {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    f"👥 {name}", url=f"tel:+78633000228,{phone.replace('-', '')}"
-                )
-            )
 
         # Отдел развития и оценки персонала
         if "hr_development" in key_contacts:
@@ -1619,12 +1596,6 @@ def show_key_contacts(chat_id: int):
             phone = key_contacts["hr_development"]["phone"]
             contacts_text += f"📋 {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    "📋 Отдел развития персонала",
-                    url=f"tel:+78633000228,{phone.replace('-', '')}",
-                )
-            )
 
         # Служба поддержки пользователей
         if "user_support" in key_contacts:
@@ -1632,17 +1603,20 @@ def show_key_contacts(chat_id: int):
             phone = key_contacts["user_support"]["phone"]
             contacts_text += f"💻 {name}\n"
             contacts_text += f"📞 Внутренний: {phone}\n\n"
-            inline_markup.add(
-                types.InlineKeyboardButton(
-                    "💻 Техподдержка", url=f"tel:+78633000228,{phone.replace('-', '')}"
-                )
-            )
 
         contacts_text += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        contacts_text += "📱 Для звонка с мобильного телефона:\n"
-        contacts_text += "1️⃣ Позвоните по номеру: +7 (863) 300-02-28\n"
-        contacts_text += "2️⃣ В тональном режиме наберите нужный внутренний номер\n\n"
-        contacts_text += "💡 Нажмите на кнопку ниже для быстрого вызова"
+        contacts_text += "📱 Для звонка с мобильного телефона:\n\n"
+        contacts_text += "1️⃣ Позвоните: +7 (863) 300-02-28\n"
+        contacts_text += "2️⃣ В тональном режиме наберите внутренний номер\n\n"
+        contacts_text += "💡 Нажмите кнопку ниже для быстрого вызова главного номера"
+
+        # Создаем inline кнопку только для главного номера
+        inline_markup = types.InlineKeyboardMarkup()
+        inline_markup.add(
+            types.InlineKeyboardButton(
+                "📞 Позвонить: +7 (863) 300-02-28", url="tel:+78633000228"
+            )
+        )
 
         # Создаем клавиатуру с кнопками навигации
         keyboard_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -1658,6 +1632,9 @@ def show_key_contacts(chat_id: int):
 
     except Exception as e:
         logger.error(f"❌ Ошибка показа ключевых контактов: {e}")
+        import traceback
+
+        logger.error(traceback.format_exc())
         bot.send_message(chat_id, "❌ Произошла ошибка при загрузке контактов")
 
 

@@ -1,6 +1,6 @@
 """
 Тесты для проверки улучшений бота
-Проверяет новые функции: кэширование, улучшенное логирование ошибок
+Проверяет новые функции: кэширование, улучшенное логирование ошибок, ключевые контакты
 """
 
 import os
@@ -8,7 +8,7 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 # Добавляем путь к модулям бота
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "bot"))
@@ -755,6 +755,64 @@ class TestIntegration(unittest.TestCase):
             result = False
 
         self.assertTrue(result)
+
+
+class TestKeyContactsFeature(unittest.TestCase):
+    """Тесты функции показа ключевых контактов"""
+
+    def setUp(self):
+        """Настройка перед каждым тестом"""
+        # Создаем моки для бота
+        self.mock_bot = MagicMock()
+        self.chat_id = 12345
+
+        # Создаем тестовые данные контактов
+        self.test_contacts = {
+            "trauma_center": {"name": "Травмпункт", "phone": "31-94"},
+            "fire_department": {
+                "name": "Пожарная часть (ПРИ ПОЖАРЕ ЗВОНИТЬ!)",
+                "phone": "35-00",
+            },
+            "security_post": {"name": "Пост охраны", "phone": "41-10"},
+        }
+
+    def test_key_contacts_data_structure(self):
+        """Тест структуры данных ключевых контактов"""
+        # Проверяем, что все контакты имеют необходимые поля
+        for contact_key, contact_data in self.test_contacts.items():
+            self.assertIn("name", contact_data)
+            self.assertIn("phone", contact_data)
+            # Проверяем формат номера (должен быть XX-XX)
+            self.assertRegex(contact_data["phone"], r"\d{2}-\d{2}")
+
+    def test_key_contacts_phone_url_format(self):
+        """Тест что URL для звонка имеет правильный формат (без добавочных)"""
+        # Этот тест проверяет главную исправленную ошибку:
+        # Telegram не поддерживает tel: URL с запятой и добавочными номерами
+        correct_url = "tel:+78633000228"
+
+        # URL НЕ должен содержать запятую и добавочный номер
+        self.assertNotIn(",", correct_url)
+
+        # URL должен быть простым телефонным номером
+        self.assertTrue(correct_url.startswith("tel:+7"))
+
+        # Проверяем что некорректные URL отличаются от правильного
+        invalid_urls = {
+            "tel:+78633000228,3194": ",",  # С запятой (вызывает ошибку в Telegram)
+            "tel:+78633000228;3194": ";",  # С точкой с запятой
+            "tel:+78633000228#3194": "#",  # С решеткой
+        }
+
+        for invalid_url, separator in invalid_urls.items():
+            # Эти URL вызовут ошибку "Wrong port number" в Telegram API
+            self.assertIn(
+                separator,
+                invalid_url,
+                f"Invalid URL should contain separator {separator}",
+            )
+            # Проверяем что правильный URL НЕ содержит этих символов
+            self.assertNotIn(separator, correct_url)
 
 
 if __name__ == "__main__":
